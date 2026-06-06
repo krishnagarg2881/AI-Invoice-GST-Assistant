@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Invoice & GST Assistant</title>
+    <!-- CSS stylesheet link -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Chart.js CDN for interactive spending/tax graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">AI</div>
+                <div>
+                    <span class="logo-text">GST Assist</span>
+                    <span class="logo-sub">Small Business</span>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <li class="nav-item active" data-page="dashboard">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="invoices">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                        <span>Invoices</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="gst-reports">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                        <span>GST Reports</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="chat">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span>AI Assistant</span>
+                    </a>
+                </li>
+                <li class="nav-item" data-page="settings">
+                    <a href="#">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        <span>Settings</span>
+                    </a>
+                </li>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="business-tag">
+                    <div class="business-tag-title">GSTIN Account</div>
+                    <div class="business-tag-name" id="sidebar-gstin">Not Configured</div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- --- VIEW: DASHBOARD --- -->
+            <section id="view-dashboard" class="page-view active">
+                <div class="top-bar">
+                    <div class="page-title">
+                        <h1>Financial Dashboard</h1>
+                        <p>Real-time view of your invoices, expense categorizations, and GST returns data.</p>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary" onclick="navigateToPage('invoices')">
+                            <span>Scan New Invoice</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- KPI cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Spend (Gross)</div>
+                        <div class="kpi-value" id="kpi-total-spend">₹0.00</div>
+                        <div class="kpi-meta primary"><span id="kpi-count-invoices">0</span> Invoices Uploaded</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total Taxable Value</div>
+                        <div class="kpi-value" id="kpi-taxable-value">₹0.00</div>
+                        <div class="kpi-meta">Base purchase values</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Total GST claimed (ITC)</div>
+                        <div class="kpi-value" id="kpi-gst-claimed" style="color: var(--color-primary);">₹0.00</div>
+                        <div class="kpi-meta success">CGST + SGST + IGST</div>
+                    </div>
+                </div>
+                
+                <!-- Charts Grid -->
+                <div class="analytics-grid">
+                    <!-- Spend breakdown -->
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <span class="card-title">Expense Category Allocation</span>
+                        </div>
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Monthly Tax structure -->
+                    <div class="chart-card">
+                        <div class="card-header">
+                            <span class="card-title">GST Tax Credits Split</span>
+                        </div>
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas id="taxChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent upload preview table -->
+                <div class="invoices-card">
+                    <div class="card-header" style="padding: 20px 24px; border-bottom: 1px solid var(--border-color);">
+                        <span class="card-title">Recent Invoices</span>
+                        <a href="#" class="btn" onclick="navigateToPage('invoices')" style="padding: 6px 12px; font-size: 12px;">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Invoice #</th>
+                                    <th>Supplier</th>
+                                    <th>Category</th>
+                                    <th>Taxable (₹)</th>
+                                    <th>GST Claim (₹)</th>
+                                    <th>Total (₹)</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-invoices-body">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 40px;">No invoices scanned yet. Click "Scan New Invoice" to begin.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- --- VIEW: INVOICES --- -->
+            <section id="view-invoices" class="page-view">
+                <div class="top-bar">
+                    <div class="page-title">
+                        <h1>Invoice Digitization</h1>
+                        <p>Upload files to run AI-powered OCR. Edit extracted information and track historical bills.</p>
+                    </div>
+                </div>
+                
+                <!-- Drag and drop zone -->
+                <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-selector').click()">
+                    <input type="file" id="file-selector" class="file-input" accept=".pdf,.png,.jpg,.jpeg,.webp" multiple>
+                    <div class="upload-icon">📤</div>
+                    <div class="upload-title">Drag & drop your invoices here</div>
+                    <div class="upload-desc">Supports PDF documents and JPEG/PNG images (Max 10MB)</div>
+                    <button class="btn btn-primary" type="button">Select Files</button>
+                    
+                    <!-- Progress bar -->
+                    <div id="upload-progress-container" style="display:none; width: 80%; margin: 20px auto 0 auto;">
+                        <div class="kpi-label" id="upload-status" style="margin-bottom: 8px;">Processing file...</div>
+                        <div style="width: 100%; height: 8px; background-color: var(--bg-input); border-radius: 4px; overflow: hidden;">
+                            <div id="upload-progress-bar" style="width: 10%; height: 100%; background: linear-gradient(to right, var(--color-primary), var(--color-secondary)); transition: width 0.3s ease;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Filter bar -->
+                <div class="report-filters" style="margin-top: 32px; margin-bottom: 24px;">
+                    <div class="form-group" style="flex-grow: 1;">
+                        <label>Search Supplier</label>
+                        <input type="text" id="filter-vendor" class="form-input" placeholder="Type vendor name...">
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="filter-category" class="form-input">
+                            <option value="">All Categories</option>
+                            <option value="Transport">Transport</option>
+                            <option value="Inventory">Inventory</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Office Supplies">Office Supplies</option>
+                            <option value="Meals & Entertainment">Meals & Entertainment</option>
+                            <option value="Rent">Rent</option>
+                            <option value="Salaries">Salaries</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="loadInvoicesList()">Filter</button>
+                </div>
+                
+                <!-- Full table -->
+                <div class="invoices-card">
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Invoice #</th>
+                                    <th>Supplier</th>
+                                    <th>Category</th>
+                                    <th>Taxable (₹)</th>
+                                    <th>CGST (₹)</th>
+                                    <th>SGST (₹)</th>
+                                    <th>IGST (₹)</th>
+                                    <th>Total (₹)</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoices-list-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- --- VIEW: GST REPORTS --- -->
+            <section id="view-gst-reports" class="page-view">
+                <div class="top-bar">
+                    <div class="page-title">
+                        <h1>GST & Tax Reports</h1>
+                        <p>Generate monthly and annual GST summaries for filling out GSTR-3B forms.</p>
+                    </div>
+                </div>
+                
+                <!-- Report filtering -->
+                <div class="report-filters">
+                    <div class="form-group">
+                        <label>Financial Year</label>
+                        <select id="report-year" class="form-input">
+                            <option value="2026">2026</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Month (Optional)</label>
+                        <select id="report-month" class="form-input">
+                            <option value="">Full Year</option>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="generateGSTReport()">Generate Summary</button>
+                    <button class="btn" onclick="exportGSTCSV()">Export CSV</button>
+                </div>
+                
+                <!-- GST Summary Blocks -->
+                <div class="gst-box-grid">
+                    <div class="kpi-card" style="border-left: 4px solid var(--color-primary);">
+                        <div class="kpi-label">Intra-State GST (CGST + SGST)</div>
+                        <div class="kpi-value" id="gst-rep-intra">₹0.00</div>
+                        <div class="kpi-meta">CGST: <span id="gst-rep-cgst">₹0.00</span> | SGST: <span id="gst-rep-sgst">₹0.00</span></div>
+                    </div>
+                    <div class="kpi-card" style="border-left: 4px solid var(--color-secondary);">
+                        <div class="kpi-label">Inter-State GST (IGST)</div>
+                        <div class="kpi-value" id="gst-rep-igst">₹0.00</div>
+                        <div class="kpi-meta">Integrated GST on imports/cross-state</div>
+                    </div>
+                    <div class="kpi-card" style="border-left: 4px solid var(--color-success);">
+                        <div class="kpi-label">Total Input Tax Credit (ITC)</div>
+                        <div class="kpi-value" id="gst-rep-total">₹0.00</div>
+                        <div class="kpi-meta">Available to offset liability</div>
+                    </div>
+                </div>
+                
+                <!-- Form GSTR-3B Helper Summary -->
+                <div class="invoices-card" style="padding: 24px; margin-bottom: 32px;">
+                    <div class="card-header">
+                        <span class="card-title">GSTR-3B Input Tax Credit (ITC) Helper Table</span>
+                    </div>
+                    <div class="gst-summary-table">
+                        <div class="summary-row" style="font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--border-color);">
+                            <span>ITC Category (Eligible ITC Section 4)</span>
+                            <span style="width: 150px; text-align: right;">IGST (₹)</span>
+                            <span style="width: 150px; text-align: right;">CGST (₹)</span>
+                            <span style="width: 150px; text-align: right;">SGST/UTGST (₹)</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>(1) Import of goods (IGST transactions on purchases outside state)</span>
+                            <span style="text-align: right;" id="gstr-import-igst">₹0.00</span>
+                            <span style="text-align: right;">₹0.00</span>
+                            <span style="text-align: right;">₹0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>(4) Inward supplies liable to reverse charge (RCM)</span>
+                            <span style="text-align: right;">₹0.00</span>
+                            <span style="text-align: right;">₹0.00</span>
+                            <span style="text-align: right;">₹0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>(5) All other ITC (Local purchases / services)</span>
+                            <span style="text-align: right;">₹0.00</span>
+                            <span style="text-align: right;" id="gstr-other-cgst">₹0.00</span>
+                            <span style="text-align: right;" id="gstr-other-sgst">₹0.00</span>
+                        </div>
+                        <div class="summary-row">
+                            <span><strong>Total Eligible Input Tax Credit</strong></span>
+                            <span style="text-align: right;" id="gstr-total-igst"><strong>₹0.00</strong></span>
+                            <span style="text-align: right;" id="gstr-total-cgst"><strong>₹0.00</strong></span>
+                            <span style="text-align: right;" id="gstr-total-sgst"><strong>₹0.00</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- --- VIEW: AI ASSISTANT CHAT --- -->
+            <section id="view-chat" class="page-view">
+                <div class="top-bar">
+                    <div class="page-title">
+                        <h1>GST & Expense AI Assistant</h1>
+                        <p>Ask natural questions about your expenses and taxes. The assistant queries historical database records.</p>
+                    </div>
+                </div>
+                
+                <div class="chat-page">
+                    <div class="chat-container">
+                        <div class="chat-header">
+                            <div class="chat-header-info">
+                                <div class="assistant-avatar">🤖</div>
+                                <div>
+                                    <h3 style="font-size: 15px; font-weight: 600;">Assistant Bot</h3>
+                                    <span id="chat-mode-indicator" style="font-size: 11px; color: var(--color-success);">● Demo Mode</span>
+                                </div>
+                            </div>
+                            <button class="btn" style="padding: 6px 12px; font-size: 12px;" onclick="clearChat()">Clear History</button>
+                        </div>
+                        
+                        <!-- Messages list -->
+                        <div class="chat-messages" id="chat-messages-container">
+                            <!-- Messages will display here -->
+                            <div class="chat-bubble bubble-assistant">
+                                <p>Hi there! I am your AI GST Assistant. Ask me anything about your scanned invoices and tax payments.</p>
+                                <p>Quick queries you can ask:</p>
+                                <div class="chat-suggestions">
+                                    <div class="suggestion-chip" onclick="sendQuickQuery('How many invoices do I have?')">How many invoices do I have?</div>
+                                    <div class="suggestion-chip" onclick="sendQuickQuery('How much did I spend on Transport?')">How much did I spend on Transport?</div>
+                                    <div class="suggestion-chip" onclick="sendQuickQuery('What is my total GST tax credit?')">What is my total GST tax credit?</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="chat-input-area">
+                            <form class="chat-form" id="chat-form" onsubmit="submitChatMessage(event)">
+                                <input type="text" id="chat-input-box" class="chat-input" placeholder="Ask a question (e.g. How much did I pay Reliance last month?)..." required autocomplete="off">
+                                <button type="submit" class="btn btn-primary" style="padding: 0 24px;">Send</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- --- VIEW: SETTINGS --- -->
+            <section id="view-settings" class="page-view">
+                <div class="top-bar">
+                    <div class="page-title">
+                        <h1>Application Settings</h1>
+                        <p>Configure API integration credentials, database connections, and business credentials.</p>
+                    </div>
+                </div>
+                
+                <div class="invoices-card" style="padding: 32px; max-width: 600px; margin: 0 auto;">
+                    <form id="settings-form" onsubmit="saveSettings(event)" style="display: flex; flex-direction: column; gap: 24px;">
+                        
+                        <div class="form-group">
+                            <label>Your Business GSTIN</label>
+                            <input type="text" id="set-gstin" class="form-input" placeholder="e.g. 07AAAAA1111A1Z1" maxlength="15">
+                            <span class="kpi-meta">Indian GST identification number of your company.</span>
+                        </div>
+                        
+                        <hr style="border-color: var(--border-color);">
+                        
+                        <div class="form-group">
+                            <label>Google Gemini API Key</label>
+                            <input type="password" id="set-gemini-key" class="form-input" placeholder="AI OCR and Q&A Engine (Recommended)">
+                            <span class="kpi-meta" id="gemini-key-status">Status: Not configured. Runs in Offline Demo Mode.</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>OpenAI API Key</label>
+                            <input type="password" id="set-openai-key" class="form-input" placeholder="Alternative AI Engine">
+                            <span class="kpi-meta" id="openai-key-status">Status: Not configured.</span>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Database Connection URL</label>
+                            <input type="text" id="set-db-url" class="form-input" disabled value="sqlite:///./invoice_assistant.db">
+                            <span class="kpi-meta">SQLAlchemy Connection URI. Currently SQLite database (local storage).</span>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    </form>
+                </div>
+            </section>
+            
+        </main>
+    </div>
+    
+    <!-- --- SIDEBAR DRAWER: INVOICE EDITOR --- -->
+    <div class="drawer" id="invoice-editor-drawer">
+        <div class="drawer-header">
+            <span class="drawer-title" id="drawer-title-label">Review Invoice Data</span>
+            <button class="action-btn" onclick="closeDrawer()">
+                <svg viewBox="0 0 24 24" style="stroke: var(--text-secondary); width: 24px; height: 24px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="drawer-body">
+            <input type="hidden" id="edit-invoice-id">
+            
+            <div class="form-group">
+                <label>Supplier / Vendor Name</label>
+                <input type="text" id="edit-vendor" class="form-input">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Invoice Date</label>
+                    <input type="date" id="edit-date" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label>Invoice Number</label>
+                    <input type="text" id="edit-number" class="form-input">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Vendor GSTIN</label>
+                    <input type="text" id="edit-vendor-gstin" class="form-input" maxlength="15">
+                </div>
+                <div class="form-group">
+                    <label>Recipient GSTIN</label>
+                    <input type="text" id="edit-recipient-gstin" class="form-input" maxlength="15">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Expense Category</label>
+                <select id="edit-category" class="form-input">
+                    <option value="Transport">Transport</option>
+                    <option value="Inventory">Inventory</option>
+                    <option value="Utilities">Utilities</option>
+                    <option value="Office Supplies">Office Supplies</option>
+                    <option value="Meals & Entertainment">Meals & Entertainment</option>
+                    <option value="Rent">Rent</option>
+                    <option value="Salaries">Salaries</option>
+                    <option value="Others">Others</option>
+                </select>
+            </div>
+            
+            <hr style="border-color: var(--border-color);">
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Taxable Amount (₹)</label>
+                    <input type="number" step="0.01" id="edit-taxable" class="form-input" oninput="recalculateTotal()">
+                </div>
+                <div class="form-group">
+                    <label>CGST Amount (₹)</label>
+                    <input type="number" step="0.01" id="edit-cgst" class="form-input" oninput="recalculateTotal()">
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>SGST/UTGST Amount (₹)</label>
+                    <input type="number" step="0.01" id="edit-sgst" class="form-input" oninput="recalculateTotal()">
+                </div>
+                <div class="form-group">
+                    <label>IGST Amount (₹)</label>
+                    <input type="number" step="0.01" id="edit-igst" class="form-input" oninput="recalculateTotal()">
+                </div>
+            </div>
+            
+            <div class="form-group" style="background-color: rgba(255, 255, 255, 0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <label style="color: var(--color-primary);">Total Invoice Amount</label>
+                <input type="number" step="0.01" id="edit-total" class="form-input" style="font-weight: 700; color: var(--color-primary); background-color: transparent; border: none; font-size: 18px; pointer-events: none;" value="0.00" readonly>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="btn" onclick="closeDrawer()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveInvoiceData()">Save Updates</button>
+        </div>
+    </div>
+    
+    <!-- Script Link -->
+    <script src="app.js"></script>
+</body>
+</html>
